@@ -1,0 +1,6 @@
+flask
+selenium
+bs4
+chromedeiver_autoinstaller
+regex
+requests
