@@ -1,5 +1,5 @@
 #!/bin/python3
-from flask import Flask,render_template,redirect,session
+# from flask import Flask,render_template,redirect,session
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -10,6 +10,7 @@ import re
 import requests
 import pprint
 import json
+import argparse
 
 
 class BROWSER: # selenium browser initilization
@@ -112,7 +113,7 @@ class LINKEDIN: # Login required Certificate error BeautifulSoup used
         self.soup=BeautifulSoup(self.browser.page_source,'html5lib')
         self.rslt['Contact info']=[n.strip() for n in self.soup.find('div',{'class':'pv-profile-section__section-info section-info'}).get_text('\n').split('\n') if n.strip()]
         self.rslt['Social']=list(set([n.get('href').replace('mailto:','') for n in self.soup.find_all('a',href=re.compile(r'((https://|)twitter.com/.*|(https://|)www.facebook.com/.*|mailto:.*|https://t.me/.*|(https://|)www.instagram.com/.*|(https://|)github.com/.*|(https://|)www.pinterest.com/.*|(https://|)www.reddit.com/user/.*)'))]))
-        
+
 
 class GITHUB: # Nologin BeautifulSoup used
     def __init__(self,url):
@@ -226,12 +227,21 @@ class MINE:
         self.rslt['facebook']=FACEBOOK(self.username,fbu,fbp).rslt # verified
         self.rslt['linkedin']=LINKEDIN(self.username,lnu,lnp).rslt # verified
         self.rslt['github']=GITHUB(self.username).rslt # verified
-        self.rslt['instagram']=INSTAGRAM(self.username).rslt # Test in windows Not used
+        # self.rslt['instagram']=INSTAGRAM(self.username).rslt # Test in windows Not used
         self.rslt['pinterest']=PINTEREST(self.username).rslt # verified
         self.rslt['twitter']=TWITTER(self.username).rslt # verified
-        self.rslt['tiktok']=TIKTOK(self.username).rslt # Not used
+        # self.rslt['tiktok']=TIKTOK(self.username).rslt # Not used
         self.rslt['reddit']=REDDIT(self.username).rslt # verified
         pprint.pprint(self.rslt)
         open(f'{self.username}.json','w').write(json.dumps(self.rslt,indent=4))
 
-MINE('{username}').mine('{fbuser}','{fbpasswd}','{lnuser}','{lnpasswd}')
+
+if __name__=='__main__':
+    arg=argparse.ArgumentParser(description='SociaLod Social media informations scrapper by username matches')
+    arg.add_argument('-u',dest='username',help='Social media common username')
+    arg.add_argument('-fbu',dest='fbuser',help='Facebook username for login')
+    arg.add_argument('-fbp',dest='fbpasswd',help='Facebook  password for login')
+    arg.add_argument('-lnu',dest='lnuser',help='LinkedIn username for login')
+    arg.add_argument('-lnp',dest='lnpasswd',help='LinkedIn password for login')
+    opt=arg.parse_args()
+    MINE(f'{opt.username}').mine(f'{opt.fbuser}',f'{opt.fbpasswd}',f'{opt.lnuser}',f'{opt.lnpasswd}')
