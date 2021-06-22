@@ -1,5 +1,5 @@
 #!/bin/python3
-# from flask import Flask,render_template,redirect,session
+from flask import Flask,render_template,redirect,session
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -235,6 +235,17 @@ class MINE:
         pprint.pprint(self.rslt)
         open(f'{self.username}.json','w').write(json.dumps(self.rslt,indent=4))
 
+app=Flask(__name__)
+app.secret_key="*&@^&UHVUCHUSYushd"
+
+@app.route('/',methods=['GET','POST'])
+def index():
+    return None
+
+@app.route('/<name>',methods=['GET','POST'])
+def sociallod(name):
+    MINE(f'{name}').mine(f'{"opt.fbuser"}',f'{"opt.fbpasswd"}',f'{"opt.lnuser"}',f'{"opt.lnpasswd"}')
+    return None
 
 if __name__=='__main__':
     arg=argparse.ArgumentParser(description='SociaLod Social media informations scrapper by username matches')
@@ -245,3 +256,5 @@ if __name__=='__main__':
     arg.add_argument('-lnp',dest='lnpasswd',help='LinkedIn password for login')
     opt=arg.parse_args()
     MINE(f'{opt.username}').mine(f'{opt.fbuser}',f'{opt.fbpasswd}',f'{opt.lnuser}',f'{opt.lnpasswd}')
+    # app.debug=test_request_context
+    # app.run()
