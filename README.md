@@ -8,24 +8,27 @@ Search by user name with set social media publicly available information. That m
 
 REQUIREMENTS
 ---
+    root# pip3 install -r requirements.txt
 
-    root# pip3 install requirements.txt
+CONFIG
+---
+    create .env file and config belows 
+        FB_USER="{Your-facebook -username}"
+        FB_PASS="{Your-facebook-password}"
+        LN_USER="{Your-linkedin-username}"
+        LN_PASS="{Tour-linkedin-password}"
 
 RUN
 ---
     root# python3 app.py -h
-    usage: app.py [-h] [-u USERNAME] [-fbu FBUSER] [-fbp FBPASSWD] [-lnu LNUSER] [-lnp LNPASSWD]
+    usage: app.py [-h] [-u USERNAME]
 
     SociaLod Social media informations scrapper by username matches
 
     optional arguments:
     -h, --help     show this help message and exit
     -u USERNAME    Social media common username
-    -fbu FBUSER    Facebook username for login
-    -fbp FBPASSWD  Facebook password for login
-    -lnu LNUSER    LinkedIn username for login
-    -lnp LNPASSWD  LinkedIn password for login
 
 USE
 ---
-    root# python3 app.py -u usernanme -fbu facebookbusername -fbp facebookpassword -lnu linkedinusername -lnp linkedinpassword
+    root# python3 app.py -u usernanme

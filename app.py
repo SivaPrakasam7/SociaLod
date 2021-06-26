@@ -1,12 +1,13 @@
-#!/bin/python3
-from flask import Flask,render_template,redirect,session
+#!/bin/python
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from time import sleep
+from dotenv import load_dotenv
 
 import chromedriver_autoinstaller
 import re
+import os
 import requests
 import pprint
 import json
@@ -38,22 +39,22 @@ class COMMON: # Common function for all classes
 
 
 class FACEBOOK: # Login required
-    def __init__(self,url,luser,lpasswd):
-        self.url=f'https://www.facebook.com/{url}'
+    def __init__(self,name):
+        self.url=f'https://www.facebook.com/{name}'
         self.rslt=defaultdict(dict)
         self.detail=[['Overview','Work_and_education','Places','Contact_and_basic_info','Family_and_relationships','Details','Life_events'],['Photos','Videos','Friends']]
         self.browser=BROWSER().browser
         self.cm=COMMON()
-        self.login(luser,lpasswd)
+        self.login()
         self.mine()
 
-    def login(self,luser,lpasswd):
+    def login(self):
         self.browser.get('https://www.facebook.com/login')
         user=self.browser.find_element_by_id('email')
         passwd=self.browser.find_element_by_id('pass')
         login=self.browser.find_element_by_name('login')
-        user.send_keys(luser)
-        passwd.send_keys(lpasswd)
+        user.send_keys(os.environ.get('FB_USER'))
+        passwd.send_keys(os.environ.get('FB_PASS'))
         login.click()
         sleep(0.5)
         
@@ -67,34 +68,34 @@ class FACEBOOK: # Login required
         self.rslt['Social']=list(set([n.get('href').replace('mailto:','') for n in self.soup.find_all('a',href=re.compile(r'(https://twitter.com/.*|https://www.linkedin.com/in/.*|mailto:.*|https://t.me/.*|https://www.instagram.com/.*|https://github.com/.*|https://www.pinterest.com/.*|https://www.reddit.com/user/.*)'))]))
         self.browser.get(f'{self.url}/friends')
         self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-        sleep(1)
+        sleep(1.5)
         self.soup=BeautifulSoup(self.browser.page_source,'html5lib')
         self.rslt['Media']=[{n.find('img').get('src'):[n.find('img').get('alt').strip(),[m.strip() for m in n.get_text('\n').split('\n') if m.strip()]]} for n in self.soup.find_all('div',{'class':re.compile(r'(rq0escxv rj1gh0hx buofh1pr ni8dbmo4 stjgntxs l9j0dhe7|bp9cbjyn ue3kfks5 pw54ja7n uo3d90p7 l82x9zwi n1f8r23x rq0escxv j83agx80 bi6gxh9e discj3wi hv4rvrfc ihqw7lf3 dati1w0a gfomwglr)')}) if n.find('img')]
 
 
 class LINKEDIN: # Login required Certificate error BeautifulSoup used
-    def __init__(self,url,luser,lpasswd):
-        self.url=f'https://www.linkedin.com/in/{url}'
+    def __init__(self,name):
+        self.url=f'https://www.linkedin.com/in/{name}'
         self.rslt=defaultdict(dict)
         self.browser=BROWSER().browser
         self.cm=COMMON()
-        self.login(luser,lpasswd)
+        self.login()
         self.mine()
 
-    def login(self,luser,lpasswd):
+    def login(self):
         self.browser.get('https://www.linkedin.com/login')
         user=self.browser.find_element_by_id('username')
         passwd=self.browser.find_element_by_id('password')
         login=self.browser.find_element_by_class_name('btn__primary--large')
-        user.send_keys(luser)
-        passwd.send_keys(lpasswd)
+        user.send_keys(os.environ.get('LN_USER'))
+        passwd.send_keys(os.environ.get('LN_PASS'))
         login.click()
         sleep(0.5)
         
     def mine(self):
         self.browser.get(self.url)
         self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-        sleep(2)
+        sleep(3)
         self.soup=BeautifulSoup(self.browser.page_source,'html5lib')
         self.rslt['Profile']=self.soup.find('img',{'class':'pv-top-card__photo'}).get('src')
         self.rslt['Name']=self.soup.find('img',{'class':'pv-top-card__photo'}).get('alt')
@@ -116,10 +117,10 @@ class LINKEDIN: # Login required Certificate error BeautifulSoup used
 
 
 class GITHUB: # Nologin BeautifulSoup used
-    def __init__(self,url):
-        self.url=f'https://github.com/{url}'
+    def __init__(self,name):
+        self.url=f'https://github.com/{name}'
         self.rslt=defaultdict(dict)
-        self.soup=BeautifulSoup(requests.get(url).content,'html5lib')
+        self.soup=BeautifulSoup(requests.get(self.url).content,'html5lib')
         self.cm=COMMON()
         self.mine()
     
@@ -136,8 +137,8 @@ class GITHUB: # Nologin BeautifulSoup used
 
 
 class INSTAGRAM: # Nologin https://www.instagram.com/harishwarrior
-    def __init__(self,url):
-        self.url=f'https://www.instagram.com/{url}'
+    def __init__(self,name):
+        self.url=f'https://www.instagram.com/{name}'
         self.rslt=defaultdict(dict)
         self.browser=BROWSER().browser
         self.cm=COMMON()
@@ -149,8 +150,8 @@ class INSTAGRAM: # Nologin https://www.instagram.com/harishwarrior
 
 
 class PINTEREST: # Nologin BeautifulSoup used
-    def __init__(self,url):
-        self.url=f'https://www.pinterest.com/{url}'
+    def __init__(self,name):
+        self.url=f'https://www.pinterest.com/{name}'
         self.rslt=defaultdict(dict)
         self.browser=BROWSER().browser
         self.cm=COMMON()
@@ -171,8 +172,8 @@ class PINTEREST: # Nologin BeautifulSoup used
 
 
 class TWITTER: # Nologin BeautifulSoup used
-    def __init__(self,url):
-        self.url=f'https://twitter.com/{url}'
+    def __init__(self,name):
+        self.url=f'https://twitter.com/{name}'
         self.rslt=defaultdict(dict)
         self.browser=BROWSER().browser
         self.cm=COMMON()
@@ -190,17 +191,17 @@ class TWITTER: # Nologin BeautifulSoup used
         self.rslt['Social']=list(set([n.get('href').replace('mailto:','') for n in self.soup.find_all('a',href=re.compile(r'(https://www.linkedin.com/in/.*|https://www.facebook.com/.*|mailto:.*|https://t.me/.*|https://www.instagram.com/.*|https://github.com/.*|https://www.pinterest.com/.*|https://www.reddit.com/user/.*)'))]))
 
 
-class TIKTOK: # No login https://www.tiktok.com/@canadianmilitary8?
-    def __init__(self,url):
-        self.url=f'https://www.tiktok.com/{url}'
+class TIKTOK: # No login https://www.tiktok.com/@username?
+    def __init__(self,name):
+        self.url=f'https://www.tiktok.com/{name}'
         self.rslt=defaultdict(dict)
 
     def mine(self):pass
 
 
 class REDDIT: # No login BeautifulSoup used
-    def __init__(self,url):
-        self.url=f'https://www.reddit.com/user/{url}'
+    def __init__(self,name):
+        self.url=f'https://www.reddit.com/user/{name}'
         self.rslt=defaultdict(dict)
         self.browser=BROWSER().browser
         self.cm=COMMON()
@@ -223,38 +224,20 @@ class MINE:
         self.username=username
         self.rslt=defaultdict(dict)
 
-    def mine(self,fbu,fbp,lnu,lnp):
-        self.rslt['facebook']=FACEBOOK(self.username,fbu,fbp).rslt # verified
-        self.rslt['linkedin']=LINKEDIN(self.username,lnu,lnp).rslt # verified
+    def mine(self):
+        self.rslt['facebook']=FACEBOOK(self.username).rslt # verified
+        self.rslt['linkedin']=LINKEDIN("harishanbalagan").rslt # verified
         self.rslt['github']=GITHUB(self.username).rslt # verified
         # self.rslt['instagram']=INSTAGRAM(self.username).rslt # Test in windows Not used
         self.rslt['pinterest']=PINTEREST(self.username).rslt # verified
-        self.rslt['twitter']=TWITTER(self.username).rslt # verified
+        self.rslt['twitter']=TWITTER("theflutterboi").rslt # verified
         # self.rslt['tiktok']=TIKTOK(self.username).rslt # Not used
         self.rslt['reddit']=REDDIT(self.username).rslt # verified
-        pprint.pprint(self.rslt)
         open(f'{self.username}.json','w').write(json.dumps(self.rslt,indent=4))
 
-app=Flask(__name__)
-app.secret_key="*&@^&UHVUCHUSYushd"
-
-@app.route('/',methods=['GET','POST'])
-def index():
-    return None
-
-@app.route('/<name>',methods=['GET','POST'])
-def sociallod(name):
-    MINE(f'{name}').mine(f'{"opt.fbuser"}',f'{"opt.fbpasswd"}',f'{"opt.lnuser"}',f'{"opt.lnpasswd"}')
-    return None
-
 if __name__=='__main__':
+    load_dotenv()
     arg=argparse.ArgumentParser(description='SociaLod Social media informations scrapper by username matches')
     arg.add_argument('-u',dest='username',help='Social media common username')
-    arg.add_argument('-fbu',dest='fbuser',help='Facebook username for login')
-    arg.add_argument('-fbp',dest='fbpasswd',help='Facebook  password for login')
-    arg.add_argument('-lnu',dest='lnuser',help='LinkedIn username for login')
-    arg.add_argument('-lnp',dest='lnpasswd',help='LinkedIn password for login')
     opt=arg.parse_args()
-    MINE(f'{opt.username}').mine(f'{opt.fbuser}',f'{opt.fbpasswd}',f'{opt.lnuser}',f'{opt.lnpasswd}')
-    # app.debug=test_request_context
-    # app.run()
+    MINE(f'{opt.username}').mine()
